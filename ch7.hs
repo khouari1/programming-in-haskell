@@ -93,4 +93,21 @@ encode :: String -> [Bit]
 encode = concat . map (withParityNumber . make8 . int2bin . ord)
 
 transmit :: String -> String
-transmit = decode . channel . encode
+transmit = decode . faultyChannel . encode
+
+faultyChannel :: [Bit] -> [Bit]
+faultyChannel xs = tail xs
+
+--
+
+altMap :: (a -> b) -> (a -> b) -> [a] -> [b]
+altMap f1 f2 [] = []
+altMap f1 f2 (x:xs) = f1 x : altMap f2 f1 xs
+
+luhnDouble :: Int -> Int
+luhnDouble n | nx > 9 = nx - 9
+             | otherwise = nx
+    where nx = n * 2
+
+luhn :: [Int] -> Bool
+luhn = (== 0) . (`mod` 10) . sum . altMap luhnDouble id
