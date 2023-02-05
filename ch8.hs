@@ -42,3 +42,28 @@ balanced :: Tree a -> Bool
 balanced (Leaf x) = True
 balanced (Node x y) | (abs (leavesCount x - leavesCount y)) < 2 = balanced x && balanced y
                     | otherwise = False
+
+halve :: [a] -> ([a], [a])
+halve [] = ([], [])
+halve xs = (take n xs, drop n xs)
+         where n = length xs `div` 2
+
+instance (Show a) => Show (Tree a) where
+    show (Leaf x) = "Leaf " ++ (show x)
+    show (Node x y) = "Node {" ++ (show x) ++ " , " ++ (show y) ++ "}"
+
+balance :: [a] -> Tree a
+balance [x] = Leaf x
+balance xs = Node (balance l) (balance r)
+           where l = fst halved
+                 r = snd halved
+                 halved = halve xs
+
+data Expr = Val Int | Add Expr Expr
+
+folde :: (Int -> a) -> (a -> a -> a) -> Expr -> a
+folde f g (Val x) = f x
+folde f g (Add x y) = g (folde f g x) (folde f g y)
+
+eval :: Expr -> Int
+eval = folde id (+)
