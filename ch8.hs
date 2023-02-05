@@ -59,11 +59,42 @@ balance xs = Node (balance l) (balance r)
                  r = snd halved
                  halved = halve xs
 
-data Expr = Val Int | Add Expr Expr
+data Expr = Val Int | Add Expr Expr | Mult Expr Expr
 
 folde :: (Int -> a) -> (a -> a -> a) -> Expr -> a
 folde f g (Val x) = f x
 folde f g (Add x y) = g (folde f g x) (folde f g y)
 
-eval :: Expr -> Int
-eval = folde id (+)
+-- eval :: Expr -> Int
+-- eval = folde id (+)
+
+-- instance Eq a => Eq (Maybe a) where
+--     Nothing == Nothing = True
+--     Just x == Just y = x == y
+--     _ == _ = False
+
+-- instance Eq a => Eq [a] where
+--     [] == [] = True
+--     (x:xs) == (y:ys) = x == y && xs == ys
+--     _ == _ = False
+
+-- Abstract Machine
+
+type Cont = [Op]
+
+data Op = EVAL_ADD Expr | EVAL_MULT Expr | ADD Int | MULT Int
+
+eval :: Expr -> Cont -> Int
+eval (Val n) c = exec c n
+eval (Add x y) c = eval x (EVAL_ADD y : c)
+eval (Mult x y) c = eval x (EVAL_MULT y : c)
+
+exec :: Cont -> Int -> Int
+exec [] n = n
+exec (EVAL_ADD y : c) n = eval y (ADD n : c)
+exec (EVAL_MULT y : c) n = eval y (MULT n : c)
+exec (ADD n : c) m = exec c (n + m)
+exec (MULT n : c) m = exec c (n * m)
+
+value :: Expr -> Int
+value e = eval e []
